@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AskMyDocs
+
+AskMyDocs is a simple Retrieval-Augmented Generation (RAG) application built with Next.js. It allows users to upload documents and ask questions in natural language, with answers generated using relevant content from the uploaded files.
+
+---
+
+## Features
+
+- Upload PDF and DOCX files (one at a time)
+- Automatic text parsing and chunking
+- Vector embeddings using Gemini (`text-embedding-004`)
+- Semantic search with Pinecone vector database
+- Intelligent chatbot using Groq (Llama 3.1)
+- Supports normal chat and document-based Q&A
+- Answers include document name references
+- Full observability and tracing with Langfuse
+
+---
+
+## Tech Stack
+
+- **Frontend / Backend:** Next.js (App Router, API Routes), TypeScript
+- **Vector Database:** Pinecone
+- **Embeddings:** Google Gemini
+- **LLM (Chat):** Groq (Llama 3.1)
+- **Database:** Supabase (document metadata)
+- **Observability:** Langfuse
+
+---
+
+## How It Works
+
+1. User uploads a document
+2. Text is extracted, chunked, and embedded
+3. Embeddings are stored in Pinecone with metadata
+4. User asks a question in chat
+5. The system decides between:
+   - Normal conversational response
+   - Retrieval from Pinecone for document-based answers
+6. The LLM generates an answer with source references
+7. Each step is traced and logged in Langfuse
+
+---
 
 ## Getting Started
 
-First, run the development server:
-
+### 1. Install dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create a `.env.local` file and add:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
 
-## Learn More
+# Pinecone
+PINECONE_API_KEY=your_pinecone_key
+PINECONE_INDEX_NAME=your_index_name
 
-To learn more about Next.js, take a look at the following resources:
+# Gemini (Embeddings)
+GEMINI_API_KEY=your_gemini_key
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Groq (Chat)
+GROQ_API_KEY=your_groq_key
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Langfuse
+LANGFUSE_PUBLIC_KEY=your_langfuse_public_key
+LANGFUSE_SECRET_KEY=your_langfuse_secret_key
+LANGFUSE_HOST=https://cloud.langfuse.com
+```
 
-## Deploy on Vercel
+### 3. Run the app
+```bash
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Open http://localhost:3000 in your browser.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Observability with Langfuse
+
+Each chat request is traced in Langfuse, including:
+- User input
+- Document retrieval from Pinecone
+- LLM generation
+- Final response output
+
+This helps with debugging, monitoring, and prompt iteration.
+
+---
+
+## Notes
+
+- Gemini free tier has strict rate limits; retry and backoff logic is implemented.
+- The system uses deterministic routing instead of native LLM tool calling for stability.
+- Designed to be simple, extensible, and production-oriented.
+
+---
+
+## Demo
+
+A Loom video demonstrating document upload, chat interaction, and Langfuse tracing is included as part of the submission.
+
+---
+
+## License
+
+This project is for educational and assignment purposes.
