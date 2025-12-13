@@ -105,7 +105,6 @@ This helps with debugging, monitoring, and prompt iteration.
 
 ## Demo
 
-A Loom video demonstrating document upload, chat interaction, and Langfuse tracing is included as part of the submission.
 
 ---
 
