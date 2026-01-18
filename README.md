@@ -1,113 +1,107 @@
 # AskMyDocs
 
-AskMyDocs is a simple Retrieval-Augmented Generation (RAG) application built with Next.js. It allows users to upload documents and ask questions in natural language, with answers generated using relevant content from the uploaded files.
-
----
+**AskMyDocs** is an intelligent Retrieval-Augmented Generation (RAG) application that allows users to upload documents (PDF, Docx, TXT) and chat with them using AI. It simplifies complex information by organizing your documents and providing instant, accurate answers to your questions.
 
 ## Features
 
-- Upload PDF and DOCX files (one at a time)
-- Automatic text parsing and chunking
-- Vector embeddings using Gemini (`text-embedding-004`)
-- Semantic search with Pinecone vector database
-- Intelligent chatbot using Groq (Llama 3.1)
-- Supports normal chat and document-based Q&A
-- Answers include document name references
-- Full observability and tracing with Langfuse
-
----
+-   **📄 Document Upload**: Support for PDF, Word documents (.docx), and text files.
+-   **🔍 AI-Powered Analysis**: Uses Pinecone for vector storage and embedding search to find relevant context.
+-   **💬 Interactive Chat**: Chat with your documents using a modern, responsive interface.
+-   **🤖 Intelligent Responses**: Powered by LangChain and Google Generative AI (Gemini).
+-   **🔐 Secure Authentication**: Integrated with Supabase Auth for secure user management.
+-   **🎨 Premium UI**: Features a sleek, monochrome aesthetics design with glassmorphism effects and smooth animations using Framer Motion.
+-   **📱 Fully Responsive**: Optimized for both desktop and mobile devices.
+-   **🗑️ Document Management**: Easily upload and delete documents from your library.
 
 ## Tech Stack
 
-- **Frontend / Backend:** Next.js (App Router, API Routes), TypeScript
-- **Vector Database:** Pinecone
-- **Embeddings:** Google Gemini
-- **LLM (Chat):** Groq (Llama 3.1)
-- **Database:** Supabase (document metadata)
-- **Observability:** Langfuse
+This project is built with a modern web development stack:
 
----
+-   **Framework**: [Next.js 15+](https://nextjs.org/) (App Directory)
+-   **Language**: TypeScript
+-   **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+-   **Backend/Database**: [Supabase](https://supabase.com/) (PostgreSQL & Auth)
+-   **Vector Database**: [Pinecone](https://www.pinecone.io/)
+-   **AI Orchestration**: [LangChain](https://js.langchain.com/)
+-   **LLM Provider**: Google Generative AI (Gemini)
+-   **Animations**: [Framer Motion](https://www.framer.com/motion/)
+-   **Icons**: [Lucide React](https://lucide.dev/)
 
-## How It Works
+## Environment Variables
 
-1. User uploads a document
-2. Text is extracted, chunked, and embedded
-3. Embeddings are stored in Pinecone with metadata
-4. User asks a question in chat
-5. The system decides between:
-   - Normal conversational response
-   - Retrieval from Pinecone for document-based answers
-6. The LLM generates an answer with source references
-7. Each step is traced and logged in Langfuse
-
----
-
-## Getting Started
-
-### 1. Install dependencies
-```bash
-npm install
-```
-
-### 2. Environment variables
-
-Create a `.env.local` file and add:
+Create a `.env.local` file in the root directory and add the following variables:
 
 ```env
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 # Pinecone
-PINECONE_API_KEY=your_pinecone_key
+PINECONE_API_KEY=your_pinecone_api_key
 PINECONE_INDEX_NAME=your_index_name
 
-# Gemini (Embeddings)
-GEMINI_API_KEY=your_gemini_key
-
-# Groq (Chat)
-GROQ_API_KEY=your_groq_key
-
-# Langfuse
-LANGFUSE_PUBLIC_KEY=your_langfuse_public_key
-LANGFUSE_SECRET_KEY=your_langfuse_secret_key
-LANGFUSE_HOST=https://cloud.langfuse.com
+# Google Generative AI
+GOOGLE_API_KEY=your_google_api_key
 ```
 
-### 3. Run the app
-```bash
-npm run dev
-```
+## Getting Started
 
-Open http://localhost:3000 in your browser.
+1.  **Clone the repository:**
 
----
+    ```bash
+    git clone https://github.com/yourusername/askmydocs.git
+    cd askmydocs
+    ```
 
-## Observability with Langfuse
+2.  **Install dependencies:**
 
-Each chat request is traced in Langfuse, including:
-- User input
-- Document retrieval from Pinecone
-- LLM generation
-- Final response output
+    ```bash
+    npm install
+    ```
 
-This helps with debugging, monitoring, and prompt iteration.
+3.  **Run the development server:**
 
----
+    ```bash
+    npm run dev
+    ```
 
-## Notes
+4.  Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-- Gemini free tier has strict rate limits; retry and backoff logic is implemented.
-- The system uses deterministic routing instead of native LLM tool calling for stability.
-- Designed to be simple, extensible, and production-oriented.
+## Database Setup (Supabase)
 
----
+1.  Create a new Supabase project.
+2.  Run the following SQL to create the `documents` table:
 
-## Demo
+    ```sql
+    create table documents (
+      id uuid primary key,
+      user_id uuid references auth.users not null,
+      file_name text not null,
+      file_type text,
+      chunk_count integer,
+      created_at timestamp with time zone default timezone('utc'::text, now()) not null
+    );
 
+    -- Enable RLS
+    alter table documents enable row level security;
 
----
+    -- Create Policy: Users can see their own documents
+    create policy "Users can see own documents"
+      on documents for select
+      using ( auth.uid() = user_id );
+
+    -- Create Policy: Users can insert their own documents
+    create policy "Users can insert own documents"
+      on documents for insert
+      with check ( auth.uid() = user_id );
+
+    -- Create Policy: Users can delete their own documents
+    create policy "Users can delete own documents"
+      on documents for delete
+      using ( auth.uid() = user_id );
+    ```
 
 ## License
 
-This project is for educational and assignment purposes.
+MIT
