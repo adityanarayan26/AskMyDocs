@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { supabaseAdmin } from "@/lib/supabase";
+import { supabaseAdmin, createSupabaseServerClient } from "@/lib/supabase/server";
 import { pineconeIndex } from "@/lib/pinecone";
 import { parseFile } from "@/lib/file-parser";
 import { chunkText } from "@/lib/chunker";
@@ -15,6 +15,14 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "No file" }, { status: 400 });
     }
 
+    // 0. Get User
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const documentId = randomUUID();
 
     // 1. Save metadata first
@@ -25,6 +33,7 @@ export async function POST(req: Request) {
             file_name: file.name,
             file_type: file.type,
             chunk_count: 0,
+            user_id: user.id
         });
 
     if (insertError) {
@@ -47,6 +56,7 @@ export async function POST(req: Request) {
                 fileName: file.name,
                 chunkIndex: i,
                 content,
+                userId: user.id
             },
         }))
     );
@@ -57,7 +67,8 @@ export async function POST(req: Request) {
     await supabaseAdmin
         .from("documents")
         .update({ chunk_count: chunks.length })
-        .eq("id", documentId);
+        .eq("id", documentId)
+        .eq("user_id", user.id);
 
     return NextResponse.json({
         documentId,
